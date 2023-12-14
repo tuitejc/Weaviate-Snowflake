@@ -1,0 +1,18 @@
+spec:
+    containers:
+    - name: "text2vec"
+      image: "arvxsoz-wb10752.registry.snowflakecomputing.com/weaviate_db_001/public/weaviate_repo/text2vec"
+      env:
+        SNOWFLAKE_MOUNTED_STAGE_PATH: "stage"
+      volumeMounts:
+        - name: stage
+          mountPath: /workspace/stage
+    endpoints:
+    - name: "text2vec"
+      port: 8080
+      public: true
+    volumes:
+    - name: data
+      source: "@data"
+    - name: stage
+      source: "@files"
