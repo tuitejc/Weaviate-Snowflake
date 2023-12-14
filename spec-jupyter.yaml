@@ -1,7 +1,7 @@
 spec:
     containers:
     - name: "jupyter"
-      image: "arvxsoz-wb10752.registry.snowflakecomputing.com/weaviate_db_001/public/weaviate_repo/jupyter"
+      image: "YOUR-REPO-NAME.registry.snowflakecomputing.com/weaviate_db_001/public/weaviate_repo/jupyter"
       env:
         SNOWFLAKE_MOUNTED_STAGE_PATH: "stage"
       volumeMounts:
