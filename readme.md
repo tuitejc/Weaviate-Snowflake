@@ -1,8 +1,8 @@
 # Configure a Weaviate Container in SPCS: A Step-by-Step Guide
 
-## Initial Setup
-
 The code in this guide configures a sample Snowpark Container Services (SPCS). You should change the database name, warehouse name, image repository name, and other example values to match your deployment.
+
+## Initial Setup
 
 ### 1. Log into Snowflake
 
@@ -92,7 +92,12 @@ CREATE OR REPLACE STAGE DATA ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE');
 CREATE OR REPLACE STAGE FILES ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE');
 ```
 
-Upload your configuration files for your containers. You can find the files in this repo.
+The configuration files are in this repo. Before you upload the spec files, edit the image repository value for your deployment.
+
+```bash
+image: "YOUR-REPO_NAME.registry.snowflakecomputing.com/weaviate_db_001/public/weaviate_repo/weaviate"
+``` 
+When the files are updated, upload them. 
 
 ```sql
 PUT file:///path/to/spec-jupyter.yaml @yaml_stage;
@@ -102,10 +107,16 @@ PUT file:///path/to/spec-weaviate.yaml @yaml_stage;
 
 ### 6 Build the Docker images
 
-Exit the `snowsql` client. Build the Weaviate Docker image in your local shell.
+Exit the `snowsql` client. Build the Docker images in your local shell. There are three images.
+
+- The Weaviate image runs the database.
+- The `text2vec` image lets you process data without leaving Snowpark.
+- The Jupyter image lets you store your notebooks.
 
 ```bash
 docker build --rm --platform linux/amd64 -t weaviate -f weaviate.Dockerfile .
+docker build --rm --platform linux/amd64 -t jupyter -f jupyter.Dockerfile .
+docker build --rm --platform linux/amd64 -t text2vec -f text2vec.Dockerfile .
 ```
 
 Log in to the Docker repository.
@@ -114,10 +125,13 @@ Log in to the Docker repository.
 docker login YOUR_ACCOUNT_NAME_.registry.snowflakecomputing.com/THE_REPO_YOU_CREATED_ABOVE  -u YOUR_SNOWFLAKE_USERNAME
 ```
 
-Tag and push the Docker image to the repository you created earlier.
+Tag and push the Docker images to the repository you created earlier.
 
 ```bash
 docker tag weaviate YOUR_REPOSITORY_URL
+docker tag juypter YOUR_REPOSITORY_URL
+docker tag text2vec YOUR_REPOSITORY_URL
+
 docker push YOUR_REPOSITORY_URL
 ```
 
@@ -147,7 +161,6 @@ PUT file:///path/to/SampleJSON.json @DATA;
 Create a service for each component.
 
 ```sql
-
 CREATE SERVICE IF NOT EXISTS TEXT2VEC 
   min_instances=1 
   max_instances=1 
@@ -165,7 +178,6 @@ CREATE SERVICE IF NOT EXISTS jupyter
   MAX_INSTANCES = 1
   COMPUTE_POOL = JUPYTER_CP
   SPEC = @yaml_stage/spec-jupyter.yaml;
-
 ```  
 
 ## Suspend and resume services
