@@ -168,24 +168,6 @@ CREATE SERVICE IF NOT EXISTS jupyter
 
 ```  
 
-* Batch Process to Import Data into Weaviate:
-# Python snippet to load and batch process data
-with open("SampleJSON.json") as file:
- data = json.load(file)
-
-
-with client.batch(batch_size=100) as batch:
- for record in data:
- batch.add_data_object(
- {
- "answer": record["Answer"],
- "question": record["Question"],
- "category": record["Category"]
- },
- "Question"
- )
-
-
 ## Suspend and resume services
 
 To suspend and resume services, run the following code in to the `snowsql` client.
