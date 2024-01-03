@@ -141,22 +141,7 @@ The `docker push` command looks like this.
 docker push x0000000000000-xx00000.registry.snowflakecomputing.com/weaviate_db_001/public/weaviate_repo/weaviate
 ```
 
-### 7. Load your data
-
-Log in to the `snowsql` client. Be sure you are in the correct warehouse and database. (You may need to change roles to switch warehouses.)
-
-```sql
-use WAREHOUSE WEAVIATE_WAREHOUSE;
-use DATABASE WEAVIATE_DB_001;
-```
-
-Then, load your data into the Snowflake stage.
-
-```sql
-PUT file:///path/to/SampleJSON.json @DATA;
-```
-
-### 8. Create the services
+### 7. Create the services
 
 Create a service for each component.
 
@@ -179,6 +164,87 @@ CREATE SERVICE IF NOT EXISTS jupyter
   COMPUTE_POOL = JUPYTER_CP
   SPEC = @yaml_stage/spec-jupyter.yaml;
 ```  
+
+### 8. Load your data
+
+Log in to the `snowsql` client. Be sure you are in the correct warehouse and database. (You may need to change roles to switch warehouses.)
+
+```sql
+use WAREHOUSE WEAVIATE_WAREHOUSE;
+use DATABASE WEAVIATE_DB_001;
+```
+
+Then, load your data into the Snowflake stage.
+
+```sql
+PUT file:///path/to/SampleJSON.json @DATA;
+```
+
+Then, load your data into Weaviate using Jupyter Notebooks:
+## V3 Python Client
+
+```python
+with open("SampleJSON.json") as file:
+ data = json.load(file)
+
+with client.batch(batch_size=100) as batch:
+ for record in data:
+ batch.add_data_object(
+ {
+ "answer": record["Answer"],
+ "question": record["Question"],
+ "category": record["Category"]
+ },
+ "Question"
+ )
+```
+
+## V4 Python Client
+```python
+# Import all Questions in batches
+for i, d in enumerate(data):
+   new_item = {
+       "answer": d["Answer"],
+       "question": d["Question"],
+       "category": d["Category"],
+   }
+  items_to_insert.append(new_item)
+# Insert every 100 items
+   if(len(items_to_insert) == 100):
+       articles.data.insert_many(items_to_insert)
+       items_to_insert.clear()
+
+# Insert remaining items
+if(len(items_to_insert) > 0):
+   articles.data.insert_many(items_to_insert)
+```
+DROP COMPUTE POOL JUPYTER_CP;
+DROP COMPUTE POOL TEXT2VEC_CP;
+DROP USER weaviate_user;
+
+### 9. Query your data
+Using Jupyter Notebooks, you can now query your data and confirm vectors are there.
+
+## V3 Client
+```python
+import weaviate
+import json
+import os
+print("testing...")
+client = weaviate.Client(
+   url = "http://weaviate:8080",  
+ )
+print("success!")
+
+if client.schema.exists("Question"):
+    client.schema.delete_class("Question")
+class_obj = {
+    "class": "Question",
+    "vectorizer": "text2vec-transformers"
+}
+
+client.schema.create_class(class_obj)
+```
 
 ## Suspend and resume services
 
@@ -212,9 +278,7 @@ DROP IMAGE REPOSITORY WEAVIATE_DB_001.PUBLIC.WEAVIATE_REPO;
 DROP DATABASE WEAVIATE_DB_001;
 DROP WAREHOUSE WEAVIATE_WAREHOUSE;
 DROP COMPUTE POOL WEAVIATE_CP;
-DROP COMPUTE POOL JUPYTER_CP;
-DROP COMPUTE POOL TEXT2VEC_CP;
-DROP USER weaviate_user;
+```
 DROP ROLE WEAVIATE_ROLE;
 DROP SECURITY INTEGRATION SNOWSERVICES_INGRESS_OAUTH;
 ```
