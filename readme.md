@@ -184,6 +184,25 @@ Then, load your data into Weaviate using Jupyter Notebooks:
 #### V3 Python Client
 
 ```python
+import weaviate
+import json
+import os
+print("Connecting...")
+client = weaviate.Client(
+   url = "http://weaviate:8080",  
+ )
+print("Success!")
+
+
+if client.schema.exists("Question"):
+    client.schema.delete_class("Question")
+class_obj = {
+    "class": "Question",
+    "vectorizer": "text2vec-transformers"
+}
+
+client.schema.create_class(class_obj)
+
 with open("SampleJSON.json") as file:
  data = json.load(file)
 
@@ -201,7 +220,15 @@ with client.batch(batch_size=100) as batch:
 
 #### V4 Python Client
 ```python
+
 # Import all Questions in batches
+import weaviate
+import json
+import os
+
+with open("SampleJSON.json") as file:
+ data = json.load(file)
+
 for i, d in enumerate(data):
    new_item = {
        "answer": d["Answer"],
@@ -224,23 +251,17 @@ Using Jupyter Notebooks, you can now query your data and confirm vectors are the
 
 #### V3 Client
 ```python
-import weaviate
-import json
-import os
-print("testing...")
-client = weaviate.Client(
-   url = "http://weaviate:8080",  
- )
-print("success!")
+client.data_object.get(with_vector=True)
+```
 
-if client.schema.exists("Question"):
-    client.schema.delete_class("Question")
-class_obj = {
-    "class": "Question",
-    "vectorizer": "text2vec-transformers"
-}
-
-client.schema.create_class(class_obj)
+#### V4 Client
+```python
+questions = client.collections.get("JeopardyQuestion")
+response = questions.query.near_text(
+    query="animal",
+    limit=2,
+    include_vector=True
+)
 ```
 
 ## Suspend and resume services
