@@ -218,9 +218,6 @@ for i, d in enumerate(data):
 if(len(items_to_insert) > 0):
    articles.data.insert_many(items_to_insert)
 ```
-DROP COMPUTE POOL JUPYTER_CP;
-DROP COMPUTE POOL TEXT2VEC_CP;
-DROP USER weaviate_user;
 
 ### 9. Query your data
 Using Jupyter Notebooks, you can now query your data and confirm vectors are there.
@@ -269,16 +266,24 @@ alter service JUPYTER resume;
 To remove the services, run the following code in to the `snowsql` client.
 
 ```sql
+
+DROP USER weaviate_user;
 DROP SERVICE WEAVIATE;
 DROP SERVICE JUPYTER;
 DROP SERVICE TEXT2VEC;
+DROP COMPUTE POOL JUPYTER_CP;
+DROP COMPUTE POOL TEXT2VEC_CP;
+DROP COMPUTE POOL WEAVIATE;
 DROP STAGE DATA;
 DROP STAGE FILES;
 DROP IMAGE REPOSITORY WEAVIATE_DB_001.PUBLIC.WEAVIATE_REPO;
 DROP DATABASE WEAVIATE_DB_001;
 DROP WAREHOUSE WEAVIATE_WAREHOUSE;
 DROP COMPUTE POOL WEAVIATE_CP;
-```
+
+
 DROP ROLE WEAVIATE_ROLE;
 DROP SECURITY INTEGRATION SNOWSERVICES_INGRESS_OAUTH;
+
+
 ```
