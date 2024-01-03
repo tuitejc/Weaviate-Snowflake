@@ -181,7 +181,7 @@ PUT file:///path/to/SampleJSON.json @DATA;
 ```
 
 Then, load your data into Weaviate using Jupyter Notebooks:
-## V3 Python Client
+#### V3 Python Client
 
 ```python
 with open("SampleJSON.json") as file:
@@ -199,7 +199,7 @@ with client.batch(batch_size=100) as batch:
  )
 ```
 
-## V4 Python Client
+#### V4 Python Client
 ```python
 # Import all Questions in batches
 for i, d in enumerate(data):
@@ -222,7 +222,7 @@ if(len(items_to_insert) > 0):
 ### 9. Query your data
 Using Jupyter Notebooks, you can now query your data and confirm vectors are there.
 
-## V3 Client
+#### V3 Client
 ```python
 import weaviate
 import json
